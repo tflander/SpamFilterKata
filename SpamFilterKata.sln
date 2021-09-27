@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmailAddressSpamFilter", "EmailAddressSpamFilter\EmailAddressSpamFilter.csproj", "{8F7258CA-7D6F-4D11-A9C8-C4DBC897527C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmailAddressSpamFilterTests", "EmailAddressSpamFilterTests\EmailAddressSpamFilterTests.csproj", "{AE950B7C-81C4-4767-91E7-DE96E84FF35E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8F7258CA-7D6F-4D11-A9C8-C4DBC897527C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F7258CA-7D6F-4D11-A9C8-C4DBC897527C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F7258CA-7D6F-4D11-A9C8-C4DBC897527C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F7258CA-7D6F-4D11-A9C8-C4DBC897527C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE950B7C-81C4-4767-91E7-DE96E84FF35E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE950B7C-81C4-4767-91E7-DE96E84FF35E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE950B7C-81C4-4767-91E7-DE96E84FF35E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE950B7C-81C4-4767-91E7-DE96E84FF35E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
