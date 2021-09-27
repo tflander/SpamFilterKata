@@ -15,6 +15,4 @@ TODO:
 2) Take a look at the tests.  Note the IsSpam() method is the one that doesn't seem to scale.
 3) Create characterization tests around IsSpam() and make a plan for scaling the method.
 
-TODO: provide a markdown file detailing a possible solution.
-
-[Possible Solution](PossibleSolution.md)
+Feel free to look at the [Possible Solution](PossibleSolution.md).  There is no shame.
