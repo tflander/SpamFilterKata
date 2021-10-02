@@ -86,3 +86,44 @@ Now we understand and have proven that the hash bits are the key to identifying 
             sf.IsSpam("anything@anything.com").Should().BeFalse();
         }
 ```
+Now we want to write characterization tests to validate the bits required to flag an email address as spam.
+
+**Tip: Now might be a good time to refactor tests to create the spam filter in the test setup constructor**
+
+4)  Characterize when `if (!_hashBits[Math.Abs(h1)])` evaluates to true
+
+looking at the first four lines of `Contains()`:
+
+```c#
+     var primaryHash = item.GetHashCode();
+     var secondaryHash = _getHashSecondary(item);
+     var h1 = primaryHash % _hashBits.Count;
+     if (!_hashBits[Math.Abs(h1)]) return false;
+```
+...we want to make the 4th line true.  We don't seem to need the secondary hash (whatever that is).
+
+Now we have this test
+```c#
+        [Fact]
+        public void IsNotSpamWhenOnlyThePrimaryBitIsSet()
+        {
+            const string testEmailAddress = "anything@anything.com"; 
+            var primaryHash = testEmailAddress.GetHashCode();
+            var h1 = primaryHash % _spamFilter._hashBits.Count;
+            _spamFilter._hashBits[Math.Abs(h1)] = true;
+            
+            _spamFilter.IsSpam(testEmailAddress).Should().BeFalse();
+        }
+```
+This is a pretty bad test by itself.  But now we get the understanding that in order to mark an address as spam, we need to set the bit for the 
+primary hash, plus bits for the secondary hash.  Let's try to improve this test.
+
+5) Characterize when all three bits are set to flag an email address as spam.
+
+Now we have to look at the secondary hash.  We will need access to the field `_getHashSecondary`, so let's promote it to a get-only property for testing.
+This requires that I make `delegate int HashFunction(string input);` public as well.  That's OK -- we may be able to clean up this access in a future refactor.
+
+**Tip: Now would be a good time to make `const string testEmailAddress = "anything@anything.com";` a class-level constant.**
+
+
+
