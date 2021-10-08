@@ -125,5 +125,104 @@ This requires that I make `delegate int HashFunction(string input);` public as w
 
 **Tip: Now would be a good time to make `const string testEmailAddress = "anything@anything.com";` a class-level constant.**
 
+That gives me this test:
 
+```c#
+        [Fact]
+        public void IsSpamWhenThreeRequiredBitsAreSet()
+        {
+            var primaryHash = TestEmailAddress.GetHashCode();
+            var secondaryHash = _spamFilter._getHashSecondary(TestEmailAddress);
+            var h1 = primaryHash % _spamFilter._hashBits.Count;
+            var h2 = (primaryHash +  secondaryHash) % _spamFilter._hashBits.Count;
+            var h3 = (primaryHash + (2 * secondaryHash)) % _spamFilter._hashBits.Count;
+            _spamFilter._hashBits[Math.Abs(h1)] = true;
+            _spamFilter._hashBits[Math.Abs(h2)] = true;
+            _spamFilter._hashBits[Math.Abs(h3)] = true;
+            
+            _spamFilter.IsSpam(TestEmailAddress).Should().BeTrue();
+        }
+```
 
+This looks a lot like the production code, and it seems there is a repeating pattern for the three bits we are setting.
+Let's refactor:
+
+```c#
+        [Fact]
+        public void IsSpamWhenThreeRequiredBitsAreSet()
+        {
+            var primaryHash = TestEmailAddress.GetHashCode();
+            var secondaryHash = _spamFilter._getHashSecondary(TestEmailAddress);
+            var h1 = (primaryHash + (0 * secondaryHash)) % _spamFilter._hashBits.Count;
+            var h2 = (primaryHash + (1 * secondaryHash)) % _spamFilter._hashBits.Count;
+            var h3 = (primaryHash + (2 * secondaryHash)) % _spamFilter._hashBits.Count;
+            _spamFilter._hashBits[Math.Abs(h1)] = true;
+            _spamFilter._hashBits[Math.Abs(h2)] = true;
+            _spamFilter._hashBits[Math.Abs(h3)] = true;
+            
+            _spamFilter.IsSpam(TestEmailAddress).Should().BeTrue();
+        }
+```
+
+This is a bit worse, but now I can clearly make a loop:
+
+```c#
+        [Fact]
+        public void IsSpamWhenThreeRequiredBitsAreSet()
+        {
+            var primaryHash = TestEmailAddress.GetHashCode();
+            var secondaryHash = _spamFilter._getHashSecondary(TestEmailAddress);
+            for (var i = 0; i < 3; ++i)
+            {
+                var bitToSet = (primaryHash + (i * secondaryHash)) % _spamFilter._hashBits.Count;
+                _spamFilter._hashBits[Math.Abs(bitToSet)] = true;
+            }
+            
+            _spamFilter.IsSpam(TestEmailAddress).Should().BeTrue();
+        }
+```
+
+Still green, so we can make the same change in the production code:
+
+```c#
+        private bool Contains(string item)
+        {
+            var primaryHash = item.GetHashCode();
+            var secondaryHash = _getHashSecondary(item);
+
+            for (var i = 0; i < 3; i++)
+            {
+                var bitToCheck = (primaryHash + (i * secondaryHash)) % _hashBits.Count;
+                if (!_hashBits[Math.Abs(bitToCheck)]) return false;    
+            }
+
+            return true;
+        }
+```
+
+Now we have exposed a magic number 3, which represents the number of bits that must be set to flag an email address as spam.
+
+Perhaps this magic number is a key to the accuracy of the spam filter.  We know that everything is flagged as spam when all bits are set.
+So, we can deduce that if all three bits are not set for an email address, we have accurately determined that the email address was not
+flagged as spam.  If all three bits are flagged, however, we only know that we have an email address that may be spam.
+
+Perhaps the best answer is to have an independent bit array for each of the three bits, but first, 
+let's expose the magic number 3 as a property and see if we can change it as a way to tune the accuracy of the spam filter. 
+
+```c#
+        public int BitsPerItem { get; set; } = 3;
+        
+        private bool Contains(string item)
+        {
+            var primaryHash = item.GetHashCode();
+            var secondaryHash = _getHashSecondary(item);
+
+            for (var i = 0; i < BitsPerItem; i++)
+            {
+                var bitToCheck = (primaryHash + (i * secondaryHash)) % _hashBits.Count;
+                if (!_hashBits[Math.Abs(bitToCheck)]) return false;    
+            }
+
+            return true;
+        }
+```
